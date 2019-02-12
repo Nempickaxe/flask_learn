@@ -107,3 +107,4 @@ venv.bak/
 *.pkl
 *.txt
 *.zip
+*.xlsx

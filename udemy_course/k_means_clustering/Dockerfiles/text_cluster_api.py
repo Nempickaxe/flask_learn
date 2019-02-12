@@ -36,6 +36,7 @@ def cleanse_text(text):
 
 @app.route('/cluster', methods=['POST'])
 def cluster():
+    
     data = pd.read_csv(request.files['dataset'])
     
     unstructure = 'text'
