@@ -1,39 +1,36 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Apr 13 12:02:27 2018
 
-# coding: utf-8
-
-# In[9]:
-
-
-from flask import Flask, request, make_response, send_file
+@author: vivekkalyanarangan
+"""
 from stemming.porter2 import stem
-import pandas as pd, numpy as np
+import numpy as np
+import pandas as pd
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.cluster import KMeans
+from flask import Flask, request, make_response, send_file
 from io import BytesIO
 import time
 import zipfile
-# In[4]:
 
-
-app =Flask(__name__)
-
-
-# In[8]:
-
+app = Flask(__name__)
 
 def cleanse_text(text):
     if text:
-        #white space
+        #whitespaces
         clean = ' '.join(text.split())
-        #stemming
+        
+        # Stemming
         red_text = [stem(word) for word in clean.split()]
+        
+        # Done. return
         return ' '.join(red_text)
+
     else:
         return text
-
-
-# In[10]:
-
+    
 @app.route('/cluster', methods=['POST'])
 def cluster():
     data = pd.read_csv(request.files['dataset'])
@@ -41,27 +38,26 @@ def cluster():
     unstructure = 'text'
     if 'col' in request.args:
         unstructure = request.args.get('col')
-        
-    no_of_cluster = 2
-    if 'no_of_cluster' in request.args:
-        no_of_cluster = int(request.args.get('no_of_cluster'))
+    no_of_clusters = 2
+    if 'no_of_clusters' in request.args:
+        no_of_clusters = int(request.args.get('no_of_clusters'))
         
     data = data.fillna('NULL')
+    
     data['clean_sum'] = data[unstructure].apply(cleanse_text)
     
     vectorizer = CountVectorizer(analyzer='word',
                                  stop_words='english')
-    
     counts = vectorizer.fit_transform(data['clean_sum'])
     
-    kmeans = KMeans(n_clusters=no_of_cluster)
+    kmeans = KMeans(n_clusters=no_of_clusters)
     
     data['cluster_num'] = kmeans.fit_predict(counts)
-    data.drop('clean_sum', axis=1, inplace=True)
+    data = data.drop(['clean_sum'], axis=1)
     
     output = BytesIO()
     writer = pd.ExcelWriter(output, engine='xlsxwriter')
-    data.to_excel(writer, sheet_name='clusters',
+    data.to_excel(writer, sheet_name='Clusters', 
                   encoding='utf-8', index=False)
     
     clusters = []
@@ -87,7 +83,7 @@ def cluster():
     worksheet = writer.sheets['Cluster_Report']
     chart = workbook.add_chart({'type': 'column'})
     chart.add_series({
-            'values': '=Cluster_Report!$B$2:$B'+str(no_of_cluster+1)
+            'values': '=Cluster_Report!$B$2:$B'+str(no_of_clusters+1)
             })
     worksheet.insert_chart('D2', chart)
     
@@ -105,8 +101,41 @@ def cluster():
     memory_file.seek(0)
     response = make_response(send_file(memory_file, attachment_filename='cluster_output.zip',
                                        as_attachment=True))
+    
     response.headers['Content-Disposition'] = 'attachment;filename=cluster_output.zip'
     response.headers['Access-Control-Allow-Origin'] = '*'
     return response
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    
+if __name__=='__main__':
+    app.run(host='0.0.0.0')
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
