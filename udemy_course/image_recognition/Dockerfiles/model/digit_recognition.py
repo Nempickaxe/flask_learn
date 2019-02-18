@@ -25,5 +25,5 @@ def predict_digit():
     return str(np.argmax(model.predict(im2arr)))
 
 if __name__=='__main__':
-    app.run('localhost', port=5000)
+    app.run('0.0.0.0', port=5000)
 
